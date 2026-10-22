@@ -1,20 +1,36 @@
-#!/usr/bin/env python3
+from server.app import app
 
-from flask import Flask
 
-app = Flask(__name__)
+class TestApp:
+    '''Flask application in server/app.py'''
 
-MODELS = ['Crossroads', 'Beedle']
+    def test_index_route(self):
+        '''has a resource available at "/".'''
+        response = app.test_client().get('/')
+        assert response.status_code == 200
 
-@app.route('/')
-def index():
-    return 'Welcome to Flatiron Cars'
+    def test_index_text(self):
+        '''displays "Welcome to Flatiron Cars" for the "/" route.'''
+        response = app.test_client().get('/')
+        assert response.data.decode() == 'Welcome to Flatiron Cars'
 
-@app.route('/<model>')
-def model(model):
-    if model in MODELS:
-        return f'Flatiron {model} is in our fleet!'
-    return f'No models called {model} exists in our catalog'
+    def test_model_route(self):
+        '''has a resource available at "/<model>".'''
+        response = app.test_client().get('/Beedle')
+        assert response.status_code == 200
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    def test_model_text(self):
+        '''displays text of the "/<model>" route.'''
+        response = app.test_client().get('/Crossroads')
+        assert response.data.decode() == 'Flatiron Crossroads is in our fleet!'
+
+    def test_all_existing_models(self):
+        '''every model in the catalog returns the fleet message.'''
+        for model in ['Beedle', 'Crossroads', 'M2', 'Panique']:
+            response = app.test_client().get(f'/{model}')
+            assert response.data.decode() == f'Flatiron {model} is in our fleet!'
+
+    def test_model_failure_text(self):
+        '''displays failure text of the "/<model>" route.'''
+        response = app.test_client().get('/realCar')
+        assert response.data.decode() == 'No models called realCar exists in our catalog'
